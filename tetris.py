@@ -1,7 +1,8 @@
-import pygame
-import sys
 import random
-from typing import List, Tuple, Optional
+import sys
+from typing import List, Optional, Tuple
+
+import pygame
 
 # -----------------------------
 # Konfigurasi permainan
@@ -20,7 +21,10 @@ FPS = 60
 
 # Kecepatan jatuh (detik per sel)
 GRAVITY = 0.6
-SOFT_DROP_MULTIPLIER = 0.1  # soft drop membuat jatuh 10x lebih cepat (0.6 * 0.1 = 0.06 detik per sel)
+SOFT_DROP_MULTIPLIER = (
+    # soft drop membuat jatuh 10x lebih cepat (0.6 * 0.1 = 0.06 detik per sel)
+    0.1
+)
 
 # Skor per jumlah garis yang dibersihkan sekaligus
 LINE_CLEAR_SCORES = {1: 100, 2: 300, 3: 500, 4: 800}
@@ -33,56 +37,56 @@ BLACK = (15, 15, 15)
 
 # Tetromino Colors (I, O, T, S, Z, J, L)
 COLORS = {
-    'I': (0, 240, 240),
-    'O': (240, 240, 0),
-    'T': (160, 0, 240),
-    'S': (0, 240, 0),
-    'Z': (240, 0, 0),
-    'J': (0, 0, 240),
-    'L': (240, 160, 0)
+    "I": (0, 240, 240),
+    "O": (240, 240, 0),
+    "T": (160, 0, 240),
+    "S": (0, 240, 0),
+    "Z": (240, 0, 0),
+    "J": (0, 0, 240),
+    "L": (240, 160, 0),
 }
 
 # Definisi bentuk dalam rotasi (matriks 4x4)
 # Setiap bentuk direpresentasikan sebagai daftar rotasi, masing-masing rotasi adalah daftar koordinat (x, y) relatif 4 blok.
 # Koordinat referensi adalah pivot pada bentuk (menggunakan definisi sederhana yang umum dipakai dalam implementasi tetris dasar)
 SHAPES = {
-    'I': [
+    "I": [
         [(0, 1), (1, 1), (2, 1), (3, 1)],  # ---- horizontal
         [(2, 0), (2, 1), (2, 2), (2, 3)],  # | vertical
         [(0, 2), (1, 2), (2, 2), (3, 2)],
         [(1, 0), (1, 1), (1, 2), (1, 3)],
     ],
-    'O': [
+    "O": [
         [(1, 1), (2, 1), (1, 2), (2, 2)],
         [(1, 1), (2, 1), (1, 2), (2, 2)],
         [(1, 1), (2, 1), (1, 2), (2, 2)],
         [(1, 1), (2, 1), (1, 2), (2, 2)],
     ],
-    'T': [
+    "T": [
         [(1, 1), (0, 1), (2, 1), (1, 2)],
         [(1, 1), (1, 0), (1, 2), (2, 1)],
         [(1, 1), (0, 1), (2, 1), (1, 0)],
         [(1, 1), (1, 0), (1, 2), (0, 1)],
     ],
-    'S': [
+    "S": [
         [(1, 1), (2, 1), (0, 2), (1, 2)],
         [(1, 0), (1, 1), (2, 1), (2, 2)],
         [(1, 1), (2, 1), (0, 2), (1, 2)],
         [(1, 0), (1, 1), (2, 1), (2, 2)],
     ],
-    'Z': [
+    "Z": [
         [(0, 1), (1, 1), (1, 2), (2, 2)],
         [(2, 0), (1, 1), (2, 1), (1, 2)],
         [(0, 1), (1, 1), (1, 2), (2, 2)],
         [(2, 0), (1, 1), (2, 1), (1, 2)],
     ],
-    'J': [
+    "J": [
         [(0, 1), (0, 2), (1, 2), (2, 2)],
         [(1, 0), (2, 0), (1, 1), (1, 2)],
         [(0, 1), (1, 1), (2, 1), (2, 2)],
         [(1, 0), (1, 1), (0, 2), (1, 2)],
     ],
-    'L': [
+    "L": [
         [(2, 1), (0, 2), (1, 2), (2, 2)],
         [(1, 0), (1, 1), (1, 2), (2, 2)],
         [(0, 1), (1, 1), (2, 1), (0, 2)],
@@ -104,7 +108,9 @@ class Piece:
         self.cells = SHAPES[shape_key]  # list rotasi
         self.color = COLORS[shape_key]
 
-    def get_coords(self, rot: Optional[int] = None, pos: Optional[Tuple[int, int]] = None) -> List[Tuple[int, int]]:
+    def get_coords(
+        self, rot: Optional[int] = None, pos: Optional[Tuple[int, int]] = None
+    ) -> List[Tuple[int, int]]:
         r = self.rot if rot is None else rot
         px, py = (self.x, self.y) if pos is None else pos
         return [(px + cx, py + cy) for (cx, cy) in self.cells[r % 4]]
@@ -115,7 +121,9 @@ class Board:
         self.cols = cols
         self.rows = rows
         # grid berisi None atau tuple warna (r, g, b)
-        self.grid: List[List[Optional[Tuple[int, int, int]]]] = [[None for _ in range(cols)] for _ in range(rows)]
+        self.grid: List[List[Optional[Tuple[int, int, int]]]] = [
+            [None for _ in range(cols)] for _ in range(rows)
+        ]
         self.score = 0
 
     def in_bounds(self, x: int, y: int) -> bool:
@@ -126,8 +134,13 @@ class Board:
             return False  # di atas papan dianggap tidak terisi
         return self.grid[y][x] is not None
 
-    def valid_position(self, piece: Piece, rot: Optional[int] = None, pos: Optional[Tuple[int, int]] = None) -> bool:
-        for (x, y) in piece.get_coords(rot, pos):
+    def valid_position(
+        self,
+        piece: Piece,
+        rot: Optional[int] = None,
+        pos: Optional[Tuple[int, int]] = None,
+    ) -> bool:
+        for x, y in piece.get_coords(rot, pos):
             if x < 0 or x >= self.cols:
                 return False
             if y >= self.rows:
@@ -138,7 +151,7 @@ class Board:
 
     def lock_piece(self, piece: Piece):
         # tempelkan piece ke grid
-        for (x, y) in piece.get_coords():
+        for x, y in piece.get_coords():
             if 0 <= y < self.rows:
                 self.grid[y][x] = piece.color
         # bersihkan garis
@@ -182,7 +195,7 @@ def draw_grid(surface, board: Board):
 
 
 def draw_piece(surface, piece: Piece):
-    for (x, y) in piece.get_coords():
+    for x, y in piece.get_coords():
         if y >= 0:
             rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
             inner = rect.inflate(-2, -2)
@@ -221,9 +234,13 @@ def draw_panel(surface, board: Board, next_piece: Piece, font_small, font_big):
     base_x = offset_x + (PANEL_WIDTH - 2 * 20 - width) // 2
     base_y = offset_y + (150 - height) // 2
 
-    for (x, y) in SHAPES[next_piece.shape_key][0]:
-        rect = pygame.Rect(base_x + (x - min_x) * preview_scale, base_y + (y - min_y) * preview_scale,
-                           preview_scale, preview_scale)
+    for x, y in SHAPES[next_piece.shape_key][0]:
+        rect = pygame.Rect(
+            base_x + (x - min_x) * preview_scale,
+            base_y + (y - min_y) * preview_scale,
+            preview_scale,
+            preview_scale,
+        )
         inner = rect.inflate(-2, -2)
         pygame.draw.rect(surface, next_piece.color, inner)
 
@@ -246,7 +263,7 @@ def draw_panel(surface, board: Board, next_piece: Piece, font_small, font_big):
 
 def get_bag_queue() -> List[str]:
     # 7-bag randomizer, untuk distribusi tetromino yang seimbang
-    bag = ['I', 'O', 'T', 'S', 'Z', 'J', 'L']
+    bag = ["I", "O", "T", "S", "Z", "J", "L"]
     random.shuffle(bag)
     return bag
 
@@ -273,7 +290,7 @@ def try_rotate(board: Board, piece: Piece, direction: int) -> None:
             piece.rot = new_rot
             return
     # Untuk I piece, coba kick vertikal kecil jika menabrak lantai
-    if piece.shape_key == 'I':
+    if piece.shape_key == "I":
         for dy in (-1, 1):
             if board.valid_position(piece, rot=new_rot, pos=(piece.x, piece.y + dy)):
                 piece.y += dy
@@ -352,7 +369,9 @@ def main():
 
         # Soft drop dengan menahan panah bawah
         keys = pygame.key.get_pressed()
-        current_gravity = gravity * (SOFT_DROP_MULTIPLIER if keys[pygame.K_DOWN] else 1.0)
+        current_gravity = gravity * (
+            SOFT_DROP_MULTIPLIER if keys[pygame.K_DOWN] else 1.0
+        )
 
         # Turunkan piece sesuai timer
         if fall_timer >= current_gravity:
@@ -391,11 +410,15 @@ def show_game_over(screen, board: Board, font_big, font_small):
 
     text = font_big.render("GAME OVER", True, WHITE)
     score_text = font_small.render(f"Skor: {board.score}", True, WHITE)
-    info_text = font_small.render("Tekan R untuk restart atau Esc untuk keluar", True, WHITE)
+    info_text = font_small.render(
+        "Tekan R untuk restart atau Esc untuk keluar", True, WHITE
+    )
 
     # Posisikan di tengah layar
     text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 30))
-    score_rect = score_text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 10))
+    score_rect = score_text.get_rect(
+        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 10)
+    )
     info_rect = info_text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 40))
 
     screen.blit(overlay, (0, 0))
